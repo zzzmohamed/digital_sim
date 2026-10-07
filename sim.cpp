@@ -1,4 +1,6 @@
 #include <iostream>
+#include <vector>
+#include <ranges>
 
 
 
@@ -15,8 +17,10 @@ class wire{
         void toggle(){
             state = !state;
         }
-        void set_state(bool state){
+        bool set_state(bool state){
+            bool res = (this->state != state);
             this->state = state;
+            return res;
         }
         bool get_state() const{
             return state; 
@@ -63,6 +67,38 @@ class Andgate:public gate{
             output->set_state(res);
         }
 };
+class Orgate:public gate{
+    private:
+        wire* input_1;
+        wire* input_2;
+        wire* output;
+    public:
+        Orgate(wire* input_1, wire* input_2 ,wire* output){
+            this->input_1 = input_1;
+            this->input_2 = input_2;
+            this->output = output;
+        }
+
+        void eval() override{
+            bool res = input_1->get_state() || input_2->get_state();
+            output->set_state(res);
+        }
+};
+
+
+class Circuit{
+    private:
+        std::vector<gate*> gates;
+    public:
+        void add_gate(gate* g){
+            gates.push_back(g);
+        }
+        void eval(){
+            for(auto* g : gates){
+                g->eval();
+            }
+        }
+};
 
 
 int main(int argc, char* argv[]){
@@ -73,8 +109,12 @@ int main(int argc, char* argv[]){
     wire out_2;
     Andgate ag(&a,&b,&out_1);
     Notgate n(&out_1,&out_2);
-    ag.eval();
-    n.eval();
+    Circuit c;
+    c.add_gate(&ag);
+    c.add_gate(&n);
+
+    c.eval();
+
     std::cout << out_2.get_state();
 
 
